@@ -10,10 +10,16 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [{ name = "Xu Jiaqi", email = "jiaqixu12138@gmail.com" }]
-dependencies = ["click>=8.0.0", "rich>=13.0.0"]
+dependencies = ["click>=8.0.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
 
 [project.scripts]
 jsonfmt = "json_formatter.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Master-626/json-formatter"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
