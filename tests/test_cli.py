@@ -124,11 +124,40 @@ def test_integer_digit_limit_fails_cleanly(runner, tmp_path, command):
 
 
 @pytest.mark.parametrize("command", ["format", "validate"])
-def test_parser_recursion_limit_fails_cleanly(runner, tmp_path, command):
-    # CPython's C decoder may use a separate limit from Python's call stack.
-    depth = max(10_000, sys.getrecursionlimit() + 100)
+def test_nested_input_follows_python_limits(runner, tmp_path, command):
+    # Newer Python versions can parse deeper JSON without a recursion error.
+    # Follow this interpreter's result rather than imposing an arbitrary limit.
+    depth = sys.getrecursionlimit() + 100
+    source = "[" * depth + "0" + "]" * depth
     path = tmp_path / "deeply-nested.json"
-    path.write_text("[" * depth + "0" + "]" * depth, encoding="utf-8")
+    path.write_text(source, encoding="utf-8")
+    try:
+        data = json.loads(source)
+        expected = (
+            json.dumps(data, indent=2) + "\n" if command == "format" else "Valid JSON!\n"
+        )
+    except RecursionError:
+        expected = None
+
+    result = runner.invoke(main, [command, str(path)])
+    if expected is not None:
+        assert result.exit_code == 0
+        assert result.stdout == expected
+        assert result.stderr == ""
+    else:
+        assert result.exit_code == 1
+        assert result.stdout == ""
+        assert result.stderr.startswith("Error: ")
+        assert "Traceback" not in result.stderr
+
+
+@pytest.mark.parametrize("command", ["format", "validate"])
+def test_parser_recursion_limit_fails_cleanly(runner, tmp_path, monkeypatch, command):
+    def fail_parsing(*args, **kwargs):
+        raise RecursionError("maximum recursion depth exceeded")
+
+    path = write_json(tmp_path, {})
+    monkeypatch.setattr(cli.json, "load", fail_parsing)
     result = runner.invoke(main, [command, str(path)])
     assert result.exit_code == 1
     assert result.stdout == ""
