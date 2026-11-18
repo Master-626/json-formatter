@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request]
+# pull_request covers this branch. A second full matrix on every push
+# doubled the macOS jobs, and GitHub cancelled one that never got a runner.
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
