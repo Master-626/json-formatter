@@ -239,11 +239,34 @@ def test_format_help_lists_options(runner):
     assert "--output" in result.stdout
 
 
+def _command_text(result):
+    text = result.output or ""
+    stderr = result.stderr or ""
+    if stderr not in text:
+        text += stderr
+    return text
+
+
 def test_missing_command_is_usage_error(runner):
     result = runner.invoke(main, [])
     assert result.exit_code == 2
-    assert "format" in result.output
-    assert "validate" in result.output
+    text = _command_text(result)
+    assert "format" in text
+    assert "validate" in text
+    assert "Traceback" not in text
+
+
+def test_missing_command_subprocess():
+    result = subprocess.run(
+        [sys.executable, "-m", "json_formatter.cli"],
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 2
+    assert result.stdout == b""
+    assert b"format" in result.stderr
+    assert b"validate" in result.stderr
+    assert b"Traceback" not in result.stderr
 
 
 def test_format_does_not_modify_input_bytes(runner, tmp_path):

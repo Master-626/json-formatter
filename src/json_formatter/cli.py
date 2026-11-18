@@ -86,7 +86,22 @@ def _write_output(path, text):
             os.unlink(temp_path)
 
 
-@click.group()
+class _CommandGroup(click.Group):
+    """Exit 2 when the program is run without a subcommand.
+
+    Click 8.2 and newer already do this. Click 8.1, the newest release that
+    installs on Python 3.8 and 3.9, prints the help and exits 0. Use the same
+    exit status on every supported Click.
+    """
+
+    def parse_args(self, ctx, args):
+        if not args and not ctx.resilient_parsing:
+            click.echo(ctx.get_help(), err=True, color=ctx.color)
+            ctx.exit(2)
+        return super().parse_args(ctx, args)
+
+
+@click.group(cls=_CommandGroup)
 @click.version_option(version=__version__)
 def main():
     """JSON Formatter - Format and validate JSON from the command line."""

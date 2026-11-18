@@ -80,7 +80,7 @@ Exit status:
 | --- | --- |
 | `0` | Success. |
 | `1` | Invalid JSON, unreadable path, invalid UTF-8, a number that does not fit in a finite binary64 value, or a parser/serializer limit. The message goes to stderr and stdout is empty. |
-| `2` | Command-line usage error, including a negative `--indent` or an unknown command. |
+| `2` | Command-line usage error: no command, an unknown command, or a negative `--indent`. Help goes to stderr and stdout stays empty. |
 
 `NaN`, `Infinity`, and `-Infinity` are not JSON. Numbers that overflow to infinity (for example `1e309`) or underflow to zero (for example `1e-400`) are rejected instead of being rewritten as `Infinity` or `0.0`. Actual zeros such as `0`, `0.0`, `-0.0`, and `0e-400` are kept. The input file is never modified unless you pass it as `--output`.
 

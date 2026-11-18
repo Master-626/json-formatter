@@ -11,6 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # ubuntu-latest is Ubuntu 26.04, and setup-python cannot install
+        # Python 3.8 or 3.9 there. Keep those versions on ubuntu-22.04.
         os: [ubuntu-22.04]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
