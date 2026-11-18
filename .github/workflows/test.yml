@@ -27,12 +27,11 @@ jobs:
             python-version: "3.9"
           - os: windows-latest
             python-version: "3.14"
-          # macos-latest is arm64 and is being cancelled while queued.
-          # Intel runners are a separate pool, so Python 3.9 still runs on macOS.
-          - os: macos-15-intel
-            python-version: "3.9"
+          # One macOS job. A second queued macOS job is cancelled before a
+          # runner accepts it. 3.9 is the Click 8.1 case; 3.14 still runs
+          # on Ubuntu and Windows.
           - os: macos-latest
-            python-version: "3.14"
+            python-version: "3.9"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
