@@ -27,7 +27,9 @@ jobs:
             python-version: "3.9"
           - os: windows-latest
             python-version: "3.14"
-          - os: macos-latest
+          # macos-latest is arm64 and is being cancelled while queued.
+          # Intel runners are a separate pool, so Python 3.9 still runs on macOS.
+          - os: macos-15-intel
             python-version: "3.9"
           - os: macos-latest
             python-version: "3.14"
