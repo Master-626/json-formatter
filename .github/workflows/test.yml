@@ -1,6 +1,11 @@
-name: Tests
+name: CI
 
-on: [push, pull_request]
+# pull_request covers this branch. A second full matrix on every push
+# doubled the macOS jobs, and GitHub cancelled one that never got a runner.
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -11,21 +16,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ["3.9", "3.14"]
-        exclude:
-          - os: ubuntu-latest
-            python: "3.9"
+        # ubuntu-latest is Ubuntu 26.04, and setup-python cannot install
+        # Python 3.8 or 3.9 there. Keep those versions on ubuntu-22.04.
+        os: [ubuntu-22.04]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
-          - os: ubuntu-22.04
-            python: "3.8"
-          - os: ubuntu-22.04
-            python: "3.9"
+          - os: ubuntu-latest
+            python-version: "3.14"
+          - os: windows-latest
+            python-version: "3.9"
+          - os: windows-latest
+            python-version: "3.14"
+          # One macOS job. A second queued macOS job is cancelled before a
+          # runner accepts it. 3.9 is the Click 8.1 case; 3.14 still runs
+          # on Ubuntu and Windows.
+          - os: macos-latest
+            python-version: "3.9"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
-      - run: python -m pip install ".[dev]"
-      - run: python -m pytest
-      - run: jsonfmt --help
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install ".[dev]"
+      - name: Lint
+        run: python -m ruff check .
+      - name: Test
+        run: python -m pytest
+      - name: CLI smoke
+        run: jsonfmt --help
